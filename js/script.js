@@ -7,19 +7,29 @@ const remainingDisplay = document.querySelector(".remaining span");
 const message = document.querySelector(".message");
 const playAgain = document.querySelector(".play-again ");
 
-const word = "magnolia";
+let word = "magnolia";
 const guessedLetters = [];
+let remainingGuesses = 8;
 
-const inProgress = function (word) {
-    const inProgressLetters = [];
+const getWord = async function () {
+    const response = await fetch("https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt");
+    const words = await response.text();
+    const wordArray = words.split("\n");
+    const randomIndex = Math.floor(Math.random() * wordArray.length);
+    word = wordArray[randomIndex].trim();
+    placeholder(word);
+  };
+
+getWord();
+
+const placeholder = function (word) {
+    const placeholderLetters = [];
     for (const letter of word) {
-        console.log(letter);
-        inProgressLetters.push("●");
+        // console.log(letter);
+        placeholderLetters.push("●");
     }
-    wordInProgress.innerText = inProgressLetters.join("");
+    wordInProgress.innerText = placeholderLetters.join("");
 };
-
-inProgress(word);
 
 guessButton.addEventListener("click", function (e) {
     e.preventDefault();
@@ -53,6 +63,7 @@ const makeGuess = function (guess) {
     } else {
         guessedLetters.push(guess);
         console.log(guessedLetters);
+        guessesRemaining(guess);
         showGuessed();
         updateWord(guessedLetters);
     }
@@ -78,9 +89,27 @@ const updateWord = function (guessedLetters) {
             revealWord.push("●");
         }
     }
-    console.log(revealWord);
+    // console.log(revealWord);
     wordInProgress.innerText = revealWord.join("");
     checkIfWin();
+};
+
+const guessesRemaining = function (guess) {
+    const upperWord = word.toUpperCase();
+    if (!upperWord.includes(guess)) {
+        message.innerText = `WRONG! Sorry, try again!`;
+        remainingGuesses -= 1;
+    } else {
+        message.innerText = `Yaaas! ${guess} was right, keep going :)`;
+    }
+
+    if (remainingGuesses === 0) {
+        message.innerHTML = `WRONG, WRONG, WRONG! The correct word was <span class="highlight">${word}</span>.`;
+    } else if (remainingGuesses === 1) {
+        remainingDisplay.innerText = `${remainingGuesses} guess`;
+    } else {
+        remainingDisplay.innerText = `${remainingGuesses} guesses`;
+    }
 };
 
 const checkIfWin = function () {
@@ -89,3 +118,4 @@ const checkIfWin = function () {
         message.innerHTML = `<p class="highlight">You guessed correct the word! Congrats!</p>`;
     }
 };
+
